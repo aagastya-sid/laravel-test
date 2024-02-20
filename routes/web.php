@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SalesController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,6 +23,17 @@ Route::redirect('/dashboard', '/sales');
 Route::get('/sales', function () {
     return view('coffee_sales');
 })->middleware(['auth'])->name('coffee.sales');
+
+Route::middleware('auth')->group(function () {
+    Route::post('record-sale', [SalesController::class, 'recordSale'])
+        ->name('record.sale');
+
+    Route::post('get-sales', [SalesController::class, 'getSales'])
+        ->name('get.sales');
+
+    Route::post('selling-price', [SalesController::class, 'sellingPrice'])
+        ->name('selling.price');
+});
 
 Route::get('/shipping-partners', function () {
     return view('shipping_partners');
