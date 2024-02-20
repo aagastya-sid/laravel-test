@@ -20,11 +20,10 @@ Route::get('/', function () {
 
 Route::redirect('/dashboard', '/sales');
 
-Route::get('/sales', function () {
-    return view('coffee_sales');
-})->middleware(['auth'])->name('coffee.sales');
-
 Route::middleware('auth')->group(function () {
+    Route::get('/sales', [SalesController::class, 'index'])
+    ->middleware(['auth'])->name('coffee.sales');
+
     Route::post('record-sale', [SalesController::class, 'recordSale'])
         ->name('record.sale');
 
@@ -33,6 +32,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('selling-price', [SalesController::class, 'sellingPrice'])
         ->name('selling.price');
+
+    Route::post('remove-record', [SalesController::class, 'removeRecord'])
+        ->name('remove.record');
 });
 
 Route::get('/shipping-partners', function () {

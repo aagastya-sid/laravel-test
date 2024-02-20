@@ -12,6 +12,17 @@
                     <form name="sale_form">
                         <div class="flex">
                             <div class="mr-4">
+                                <label class="block text-sm font-medium text-gray-600">
+                                    Product
+                                    <select name="product" class="mt-1 p-2 border rounded-md w-60">
+                                        @foreach($products as $product)
+                                            <option value="{{ $product['id'] }}">{{ $product['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                                <p id="quantity_error" class="text-red-500 hidden"></p>
+                            </div>
+                            <div class="mr-4">
                                 <label class="block text-sm font-medium text-gray-600">Quantity</label>
                                 <input type="number" name="quantity" value="0" class="mt-1 p-2 border rounded-md w-60">
                                 <p id="quantity_error" class="text-red-500 hidden"></p>
@@ -46,9 +57,12 @@
                         <table class="min-w-full border border-gray-300">
                             <thead>
                             <tr class="text-left">
+                                <th class="py-2 px-4 border-b">Product</th>
                                 <th class="py-2 px-4 border-b">Quantity</th>
                                 <th class="py-2 px-4 border-b">Unit Cost</th>
                                 <th class="py-2 px-4 border-b">Selling Price</th>
+                                <th class="py-2 px-4 border-b">Sold At</th>
+                                <th class="py-2 px-4 border-b">Action</th>
                             </tr>
                             </thead>
                             <tbody id="coffee-sales">
@@ -64,7 +78,6 @@
 
 <script>
 
-    //var unique order id with timestamp
     var order_id = 'order_' + new Date().getTime();
     document.querySelector('input[name="quantity"]').addEventListener('input', function (e) {
         calculateSellingPrice();
@@ -74,16 +87,22 @@
         calculateSellingPrice();
     });
 
+    document.querySelector('select[name="product"]').addEventListener('change', function (e) {
+        calculateSellingPrice();
+    });
+
     function calculateSellingPrice() {
         let quantity = document.querySelector('input[name="quantity"]').value;
         let unitCost = document.querySelector('input[name="unit_cost"]').value;
+        let product = document.querySelector('select[name="product"]').value;
         if (quantity > 0 && unitCost > 0) {
             $.ajax({
                 type: 'POST',
                 url: '{{ route('selling.price') }}',
                 data: {
                     quantity: quantity,
-                    unit_cost: unitCost
+                    unit_cost: unitCost,
+                    product_id: product
                 },
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -102,7 +121,8 @@
         const formData = {
             quantity: document.querySelector('input[name="quantity"]').value,
             unit_cost: document.querySelector('input[name="unit_cost"]').value,
-            order_id: order_id
+            order_id: order_id,
+            product_id: document.querySelector('select[name="product"]').value
         };
 
         $.ajax({
@@ -131,6 +151,26 @@
         });
     }
 
+    function removeRecord(id) {
+        $.ajax({
+            type: 'POST',
+            url: '{{ route('remove.record') }}',
+            data: {
+                id: id
+            },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (data) {
+                alert('Record removed successfully');
+                getSales();
+            },
+            error: function (data) {
+                alert('An error occurred');
+            }
+        });
+    }
+
     function getSales() {
         const data = {
             order_id: order_id
@@ -147,9 +187,14 @@
                 let salesHtml = '';
                 sales.forEach(sale => {
                     salesHtml += `<tr>
+                        <td class="py-2 px-4 border-b">${sale.product}</td>
                         <td class="py-2 px-4 border-b">${sale.quantity}</td>
                         <td class="py-2 px-4 border-b">${sale.unit_cost}</td>
                         <td class="py-2 px-4 border-b">${sale.selling_price}</td>
+                        <td class="py-2 px-4 border-b">${sale.sold_at}</td>
+                        <td class="py-2 px-4 border-b">
+                            <button onclick="removeRecord(${sale.id})" class="bg-red-500 text-white p-2 rounded-md">Remove</button>
+                        </td>
                     </tr>`;
                 });
                 document.querySelector('#coffee-sales').innerHTML = salesHtml;

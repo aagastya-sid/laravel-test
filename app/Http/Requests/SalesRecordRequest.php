@@ -12,6 +12,7 @@ class SalesRecordRequest extends FormRequest
             'quantity' => ['required', 'integer', 'min:1'],
             'unit_cost' => ['required', 'integer', 'min:1'],
             'order_id' => ['required', 'string'],
+            'product_id' => ['required', 'integer', 'exists:products,id'],
         ];
     }
 

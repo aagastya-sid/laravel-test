@@ -13,5 +13,11 @@ class Sales extends Model
         'user_id',
         'order_id',
         'unit_cost',
+        'product_id'
     ];
+
+    public function product()
+    {
+        return $this->hasOne(Product::class, 'id', 'product_id');
+    }
 }
